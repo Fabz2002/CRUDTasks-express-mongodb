@@ -1,12 +1,9 @@
 import { Router } from "express";
 import Task from "../models/Task";
-
+import { renderTasks } from "./../controllers/tasks.controller";
 const router = Router();
 
-router.get("/", async (req, res) => {
-  const tasks = await Task.find().lean(); //find() para buscar los datos de la tabla , lean() to give the results as a javascript object instead of mongoose documents
-  res.render("index", { tasks: tasks });
-});
+router.get("/", renderTasks);
 
 router.get("/about", (req, res) => {
   res.render("about.hbs");
@@ -38,6 +35,18 @@ router.get("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
     await Task.findByIdAndDelete(id);
+    res.redirect("/");
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/toggleDone/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await Task.findById(id);
+    task.done = !task.done;
+    await task.save();
     res.redirect("/");
   } catch (error) {
     console.log(error);
